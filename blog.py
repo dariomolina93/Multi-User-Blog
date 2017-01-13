@@ -201,7 +201,6 @@ class NewComment(BlogHandler):
             print "Post_ID: ", post_id
             print"Author: ", author
 
-            #It says the error is in this line 'unicode' object has not attribute 'has_key'
             c = Comment(comment=comment, post=post_id, author=author, parent = self.user.key())
             c.put()
             self.redirect('/blog')
@@ -317,7 +316,7 @@ class BlogFront(BlogHandler):
 
         for p in posts:
             print p
-
+        #comments are in my datastore but none display, what could be the problem? I'm trying to render them in front.html
         for c in comments:
             print c
             print "Hello world"
