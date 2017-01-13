@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Sign Up</title>
+    <style type="text/css">
+      .label {text-align: right}
+      .error {color: red}
+      .login-area {
+        font-size: 13px;
+        color: gray;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+       }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <h2>Signup</h2>
+
+    <div class="login-area">
+      {% if user %}
+        {{user.name}} (<a class="login-link" href="/logout">logout</a>)
+      {% else %}
+        <a class="login-link" href="/blog">Back to Blog</a>
+        |
+        <a class="login-link" href="/signup">signup</a>
+      {% endif %}
+    </div>
+
+    <form method="post">
+      <table>
+        <tr>
+          <td class="label">
+            Username
+          </td>
+          <td>
+            <input type="text" name="username" value="{{username}}">
+          </td>
+          <td class="error">
+            {{error_username}}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="label">
+            Password
+          </td>
+          <td>
+            <input type="password" name="password" value="">
+          </td>
+          <td class="error">
+            {{error_password}}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="label">
+            Verify Password
+          </td>
+          <td>
+            <input type="password" name="verify" value="">
+          </td>
+          <td class="error">
+            {{error_verify}}
+          </td>
+        </tr>
+
+        <tr>
+          <td class="label">
+            Email (optional)
+          </td>
+          <td>
+            <input type="text" name="email" value="{{email}}">
+          </td>
+          <td class="error">
+            {{error_email}}
+          </td>
+        </tr>
+      </table>
+
+      <input type="submit">
+    </form>
+  </body>
+
+</html>

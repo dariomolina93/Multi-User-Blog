@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Login</title>
+    <style type="text/css">
+      .label {text-align: right}
+      .error {color: red}
+      .login-area {
+    font-size: 13px;
+    color: gray;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    }
+    </style>
+
+  </head>
+
+  <body>
+
+      <div class="login-area">
+    {% if user %}
+      {{user.name}} (<a class="login-link" href="/logout">logout</a>)
+    {% else %}
+      <a class="login-link" href="/blog">Back to Blog</a>
+      |
+      <a class="login-link" href="/signup">signup</a>
+    {% endif %}
+  </div>
+
+    <h2>Login</h2>
+    <form method="post">
+      <table>
+        <tr>
+          <td class="label">
+            Username
+          </td>
+          <td>
+            <input type="text" name="username" value="{{username}}">
+          </td>
+        </tr>
+
+        <tr>
+          <td class="label">
+            Password
+          </td>
+          <td>
+            <input type="password" name="password" value="">
+          </td>
+        </tr>
+      </table>
+
+      <div class="error">
+        {{error}}
+      </div>
+
+      <input type="submit">
+    </form>
+  </body>
+
+</html>

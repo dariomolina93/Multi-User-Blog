@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{{error}}
+
+  {% for p in posts %}
+    {{ p.render() | safe }}
+
+	    	<br><br>
+    
+    
+    <br>
+    <a href="/blog/{{p.key().id()}}/edit"> Edit post </a>
+
+
+    <a href="/blog/{{p.key().id()}}/newcomment"> Add Comment </a>
+
+    <a href="/blog/{{p.key().id()}}/deletepost"> Delete Post </a>
+
+    <br><br>
+    
+  {% endfor %}
+
+
+  {% for c in comments %}
+  	{{c.comment}}
+
+  {% endfor %}
+
+  <br><br>
+  <form method = "post">
+	<input type = "submit" name = "newPost" value = "New Post">
+
+</form>
+
+{% endblock %}
+
