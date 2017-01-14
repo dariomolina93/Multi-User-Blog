@@ -4,10 +4,36 @@
 
 {{error}}
 
+  {% if not post %}
+    <div class = "user"> Clike the button to make the very first post!</div>
+  {% endif %}
+
   {% for p in posts %}
     {{ p.render() | safe }}
 
-	    	<br><br>
+    <br><br>
+    <div class = "comments">
+      <h4>Comments</h4>
+      <hr>
+        {% for c in comments %}
+
+
+
+          {% if c.post|string() == p.key().id()|string() %}
+            
+                {{c.comment}}
+                <br>
+
+                <a href="/blog/{{p.key().id()}}/updatecomment/{{c.key().id()}}"> Edit Comment </a>
+                |
+                <a href="/blog/{{p.key().id()}}/deletecomment/{{c.key().id()}}"> Delete Comment </a>
+                <br><br>
+
+
+          {% endif %}
+
+        {% endfor  %}
+    </div>
     
     
     <br>
@@ -18,6 +44,8 @@
     |
     <a href="/blog/{{p.key().id()}}/like"> Like </a> {{p.likes}}
     |
+    <a href="/blog/{{p.key().id()}}/unlike"> Dislike </a> {{p.dislikes}}
+    |
     <a href="/blog/{{p.key().id()}}/deletepost"> Delete Post </a>
 
     <br><br>
@@ -25,16 +53,11 @@
   {% endfor %}
 
 
-  {% for c in comments %}
-  	{{c.comment}}
-
-  {% endfor %}
-
-  <br><br>
-  <form method = "post">
-	<input type = "submit" name = "newPost" value = "New Post">
-
-</form>
-
+  <br>
+  {% if not error %}
+    <form method = "post">
+  	   <input type = "submit" name = "newPost" value = "New Post">
+    </form> 
+  {% endif %}
 {% endblock %}
 

@@ -9,6 +9,19 @@ body {
     color: #333;
 }
 
+h4{
+    margin: 5px;
+}
+.comments {
+    padding-left: 40px;
+}
+
+.user{
+    font-size: 20px;
+    font-family: Arial;
+    color: black;
+}
+
 .login-area {
     font-size: 13px;
     color: gray;
