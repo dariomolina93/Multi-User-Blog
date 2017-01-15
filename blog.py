@@ -4,11 +4,12 @@ import random
 import hashlib
 import hmac
 from string import letters
+from models import User, Post, Comment
+from google.appengine.ext import db
+
 
 import webapp2
 import jinja2
-
-from google.appengine.ext import db
 
 #tell where the html directory is
 template_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -25,12 +26,8 @@ def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
-
-# create a flter to get comments for a post
-def getcomments(post_id):
-    comments = db.GqlQuery("SELECT * FROM Comments WHERE post_id=" + post_id + "ORDER BY created desc")
-    return coms;
-
+def users_key(group='default'):
+    return db.Key.from_path('users', group)
 
 #make a secure value
 def make_secure_val(val):
@@ -41,6 +38,7 @@ def check_secure_val(secure_val):
     val = secure_val.split('|')[0]
     if secure_val == make_secure_val(val):
         return val
+
 
 #main handler that will be used
 class BlogHandler(webapp2.RequestHandler):
@@ -77,8 +75,6 @@ class BlogHandler(webapp2.RequestHandler):
         self.user = uid and User.by_id(int(uid))
 
 
-
-#page where user will frist see
 class MainPage(BlogHandler):
 
     def get(self):
@@ -105,39 +101,6 @@ def valid_pw(name, password, h):
     return h == make_pw_hash(name, password, salt)
 
 
-def users_key(group='default'):
-    return db.Key.from_path('users', group)
-
-
-class User(db.Model):
-    # parameters for the user login
-    name = db.StringProperty(required=True)
-    pw_hash = db.StringProperty(required=True)
-    email = db.StringProperty()
-
-    @classmethod
-    def by_id(cls, uid):
-        return User.get_by_id(uid, parent=users_key())
-
-    @classmethod
-    def by_name(cls, name):
-        u = User.all().filter('name =', name).get()
-        return u
-
-    @classmethod
-    def register(cls, name, pw, email=None):
-        pw_hash = make_pw_hash(name, pw)
-        return User(parent=users_key(),
-                    name=name,
-                    pw_hash=pw_hash,
-                    email=email)
-
-    @classmethod
-    def login(cls, name, pw):
-        u = cls.by_name(name)
-        if u and valid_pw(name, pw, u.pw_hash):
-            return u
-
 
 # blog stuff
 
@@ -145,16 +108,7 @@ def blog_key(name='default'):
     return db.Key.from_path('blogs', name)
 
 
-class Comment(db.Model):
-    # parameters for the blog
-    comment = db.StringProperty()
-    post = db.StringProperty(required=True)
-    author = db.StringProperty(required = True)
-    created = db.DateTimeProperty(auto_now_add=True)
-
-
-
-
+#class for creating a new Post
 class NewPost(BlogHandler):
 
     def get(self):
@@ -172,7 +126,42 @@ class NewPost(BlogHandler):
         content = self.request.get('content')
         author = self.user.name
 
+
         if subject and content:
+
+
+            if len(str(subject)) > 55:
+                bucket = ""
+                counter = 0
+ 
+                for letter in str(subject):
+                    if counter == 55:
+                        bucket += '\n'
+                        counter = 0
+
+                    else:
+                        bucket += letter
+                        counter += 1
+
+                subject = bucket
+            
+            if len(str(content)) > 121:
+                bucket = ""
+                counter = 0
+
+                for letter in content:
+                    if counter == 121:
+                        bucket += '\n'
+                        counter = 0
+
+                    else:
+                        bucket += letter
+
+                    counter += 1
+
+                content = bucket
+            
+
             p = Post(parent=blog_key(), subject=subject,
                      content=content, author=author, likes=0, dislikes = 0, disliked_by = [],liked_by=[])
             p.put()
@@ -220,34 +209,34 @@ class NewComment(BlogHandler):
         comment = self.request.get("comment")
 
         if comment:
+
+            if len(str(comment)) > 99:
+                bucket = ""
+                counter = 0
+
+                for letter in comment:
+                    if counter == 99:
+                        bucket += '\n'
+                        counter = 0
+
+                    else:
+                        bucket += letter
+                        counter += 1
+
+
+                comment = bucket
+
             author = self.user.name
 
             c = Comment(comment=comment, post=post_id, author=author, parent = self.user.key())
             c.put()
-            self.redirect('/blog/%s' % str(post.key().id()))
+            self.redirect('/blog')
 
         else:
             error = "please provide a comment!"
             self.render("newcommnent.html",
                         post=post,
                         error=error)
-
-
-class Post(db.Model):
-    # imporant information for a post that a user may want.
-    subject = db.StringProperty(required=True)
-    content = db.TextProperty(required=True)
-    created = db.DateTimeProperty(auto_now_add=True)
-    last_modified = db.DateTimeProperty(auto_now=True)
-    author = db.StringProperty(required=True)
-    likes = db.IntegerProperty(required=True)
-    dislikes = db.IntegerProperty(required = True)
-    liked_by = db.ListProperty(str)
-    unliked_by = db.ListProperty(str)
-
-    def render(self):
-        self._render_text = self.content.replace('\n', '<br>')
-        return render_str("post.html", p=self)
 
 
 class UpdateComment(BlogHandler):
@@ -297,7 +286,7 @@ class UpdateComment(BlogHandler):
             if comment.parent().key().id() == self.user.key().id():
                 comment.comment = self.request.get('comment')
                 comment.put()
-            self.redirect('/blog/%s' % str(post_id))
+            self.redirect('/blog')
 
         else:
             error = "You need to include a comment."
@@ -323,10 +312,6 @@ class DeleteComment(BlogHandler):
             loggedUser = self.user.name
 
 
-            print"Author: ", comment.author
-            print "Comment: ", comment
-
-
             # checks to see if comment exists
             if comment == None:
                 self.redirect('/')
@@ -338,7 +323,7 @@ class DeleteComment(BlogHandler):
 
             elif comment:
                 comment.delete()
-                self.redirect('/blog/%s' % str(post_id))
+                self.redirect('/blog')
             else:
                 self.redirect('/commenterror')
         else:
@@ -382,8 +367,9 @@ class CommentError(BlogHandler):
 class BlogFront(BlogHandler):
 
     def get(self):
-        posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC")
-        comments = db.GqlQuery("SELECT * FROM Comment ORDER BY created ASC")
+        posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC limit 10")
+        comments = db.GqlQuery("SELECT * FROM Comment ORDER BY created ASC limit 10")
+
 
         self.render('front.html', posts=posts, comments= comments)
 
@@ -406,18 +392,6 @@ class PostPage(BlogHandler):
             return
 
         self.render("permalink.html", post=post)
-
-class PostPageComment(BlogHandler):
-    def get(self, post_id):
-
-        key = db.Key.from_path('Comment', int(post_id), parent=self.user.key())
-        comment = db.get(key)
-
-        if not comment:
-            self.error(404)
-            return
-
-        self.render("permalinkComment.html", comment = comment)
 
 
 class RemovePost(BlogHandler):
@@ -458,13 +432,30 @@ class LikePost(BlogHandler):
             logged_user = self.user.name
 
             if author == logged_user:
-                error = "You cannot like your own posts!!!!!!!!"
+                error = "You cannot like your own post. You already liked it and loved it by making this post."
                 self.render("error.html", error = error)
-                return
+            
 
-            if logged_user in post.liked_by:
+            elif logged_user in post.liked_by:
                 error = "You already liked this post, you can't like it again."
                 self.render("error.html", error = error)
+            
+
+
+            elif logged_user in post.unliked_by:
+                post.dislikes -= 1
+                post.unliked_by.remove(logged_user)
+                post.likes += 1
+                post.liked_by.append(logged_user)
+                post.put()
+
+                posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC limit 10")
+                comments = db.GqlQuery("SELECT * FROM Comment ORDER BY created ASC limit 10")
+
+                self.render('front.html', posts=posts, comments= comments)
+            
+
+
             else:
                 post.likes += 1
                 post.liked_by.append(logged_user)
@@ -474,7 +465,7 @@ class LikePost(BlogHandler):
                 comments = db.GqlQuery("SELECT * FROM Comment ORDER BY created ASC limit 10")
 
                 self.render('front.html', posts=posts, comments= comments)
-                return
+            
                 
 class UnlikePost(BlogHandler):
     def get(self, post_id):
@@ -489,16 +480,30 @@ class UnlikePost(BlogHandler):
             if post == None:
                 error = "Something went wrong with the dislike."
                 self.render("error.html", error = error)
-                return
+                
 
-            if post.author == self.user.name:
+            elif post.author == self.user.name:
                 error = "You cannot unlike your post, delete perhaps?"
                 self.render('error.html', error = error)
-                return
+                
 
-            if self.user.name in post.unliked_by:
+            elif self.user.name in post.unliked_by:
                 error = "You already unliked this post, you can't dislike it again."
                 self.render("error.html", error = error)
+                
+
+            elif self.user.name in post.liked_by:
+                post.likes -= 1
+                post.liked_by.remove(self.user.name)
+                post.dislikes += 1
+                post.unliked_by.append(self.user.name)
+                post.put()
+
+                posts = db.GqlQuery("SELECT * FROM Post ORDER BY created DESC limit 10")
+                comments = db.GqlQuery("SELECT * FROM Comment ORDER BY created ASC limit 10")
+
+                self.render('front.html', posts=posts, comments= comments)
+                
 
             else:
                 post.dislikes += 1
@@ -509,7 +514,7 @@ class UnlikePost(BlogHandler):
                 comments = db.GqlQuery("SELECT * FROM Comment ORDER BY created ASC limit 10")
 
                 self.render('front.html', posts=posts, comments= comments)
-                return
+        
 
 
 

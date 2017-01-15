@@ -4,9 +4,13 @@
 
 {{error}}
 
-  {% if not post %}
-    <div class = "user"> Clike the button to make the very first post!</div>
+  {% if not error %}
+    <form method = "post">
+       <input type = "submit" name = "newPost" value = "New Post">
+    </form> 
   {% endif %}
+
+<br><br>
 
   {% for p in posts %}
     {{ p.render() | safe }}
@@ -24,9 +28,9 @@
                 {{c.comment}}
                 <br>
 
-                <a href="/blog/{{p.key().id()}}/updatecomment/{{c.key().id()}}"> Edit Comment </a>
+                <a class = "smaller" href="/blog/{{p.key().id()}}/updatecomment/{{c.key().id()}}"> Edit Comment </a>
                 |
-                <a href="/blog/{{p.key().id()}}/deletecomment/{{c.key().id()}}"> Delete Comment </a>
+                <a class = "smaller" href="/blog/{{p.key().id()}}/deletecomment/{{c.key().id()}}"> Delete Comment </a>
                 <br><br>
 
 
@@ -53,11 +57,7 @@
   {% endfor %}
 
 
-  <br>
-  {% if not error %}
-    <form method = "post">
-  	   <input type = "submit" name = "newPost" value = "New Post">
-    </form> 
-  {% endif %}
+  <br><br>
+
 {% endblock %}
 
