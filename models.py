@@ -11,26 +11,31 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates')
 jinja_env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir),
                                autoescape=True)
 
-#secret for password hashing
+# secret for password hashing
 secret = 'HelloWOrld!!!23232323'
 
-#render the the html with jinja syntax
+
+# render the the html with jinja syntax
 def render_str(template, **params):
     t = jinja_env.get_template(template)
     return t.render(params)
 
+
 def users_key(group='default'):
     return db.Key.from_path('users', group)
 
-#make a secure value
+
+# make a secure value
 def make_secure_val(val):
     return '%s|%s' % (val, hmac.new(secret, val).hexdigest())
 
-#check to see if the value is correct
+
+# check to see if the value is correct
 def check_secure_val(secure_val):
     val = secure_val.split('|')[0]
     if secure_val == make_secure_val(val):
         return val
+
 
 def make_salt(length=5):
         # this returns 5 random letters to join to a password
@@ -49,6 +54,7 @@ def valid_pw(name, password, h):
     # takes name and password and applies salt
     salt = h.split(',')[0]
     return h == make_pw_hash(name, password, salt)
+
 
 class User(db.Model):
     # parameters for the user login
@@ -81,25 +87,24 @@ class User(db.Model):
 
 
 class Post(db.Model):
-    # imporant information for a post that a user may want.
-    subject = db.StringProperty(required=True, multiline = True)
+    subject = db.StringProperty(required=True, multiline=True)
     content = db.TextProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
     last_modified = db.DateTimeProperty(auto_now=True)
     author = db.StringProperty(required=True)
     likes = db.IntegerProperty(required=True)
-    dislikes = db.IntegerProperty(required = True)
+    dislikes = db.IntegerProperty(required=True)
     liked_by = db.ListProperty(str)
     unliked_by = db.ListProperty(str)
 
     def render(self):
-	    self._render_text = self.content.replace('\n', '<br>')
-	    return render_str("post.html", p=self)
+    	self._render_text = self.content.replace('\n', '<br>')
+    	return render_str("post.html", p=self)
 
 
 class Comment(db.Model):
-    # parameters for the blog
+	# parameters for the blog
     comment = db.TextProperty()
     post = db.StringProperty(required=True)
-    author = db.StringProperty(required = True)
+    author = db.StringProperty(required=True)
     created = db.DateTimeProperty(auto_now_add=True)
