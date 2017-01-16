@@ -131,33 +131,6 @@ class NewPost(BlogHandler):
 
         if subject and content:
 
-            if len(str(subject)) > 55:
-                bucket = ""
-                counter = 0
-                for letter in str(subject):
-                    if counter == 55:
-                        bucket += '\n'
-                        counter = 0
-
-                    else:
-                        bucket += letter
-                        counter += 1
-
-                subject = bucket
-            if len(str(content)) > 121:
-                bucket = ""
-                counter = 0
-
-                for letter in content:
-                    if counter == 121:
-                        bucket += '\n'
-                        counter = 0
-
-                    else:
-                        bucket += letter
-                        counter += 1
-
-                content = bucket
             p = Post(parent=blog_key(), subject=subject,
                 content=content, author=author, likes=0,
                 dislikes=0, disliked_by=[], liked_by=[])
@@ -203,22 +176,7 @@ class NewComment(BlogHandler):
         comment = self.request.get("comment")
 
         if comment:
-
-            if len(str(comment)) > 99:
-                bucket = ""
-                counter = 0
-
-                for letter in comment:
-                    if counter == 99:
-                        bucket += '\n'
-                        counter = 0
-
-                    else:
-                        bucket += letter
-                        counter += 1
-
-                comment = bucket
-
+            
             author = self.user.name
 
             c = Comment(comment=comment, post=post_id,
